@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.0.26">
+  <DUT Name="E_PIZZA_TYPES" Id="{c60bb2ba-c5ae-4915-8644-ae9b01f0c28d}">
+    <Declaration><![CDATA[TYPE E_PIZZA_TYPES :
+(
+	eType_Cheese := 0,
+	eType_Pepperoni := 1,
+	eType_Sausage := 2
+);
+END_TYPE
+]]></Declaration>
+    <ObjectProperties />
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0">
+	<Project ProjectGUID="{6DC0A05D-D5C5-4F43-99CD-9CA6027E3F46}" ModifiedGUID="{57C96307-7581-4FA7-B0EB-7D163698C0E3}" Target64Bit="true">
+		<System>
+			<Settings MaxCpus="2">
+				<Cpu CpuId="1"/>
+			</Settings>
+			<Tasks>
+				<Task Id="2" Priority="20" CycleTime="10000" AmsPort="350">
+					<Name>PlcTask</Name>
+				</Task>
+			</Tasks>
+		</System>
+		<Plc>
+			<Project File="Untitled1.xti"/>
+		</Plc>
+	</Project>
+</TcSmProject>

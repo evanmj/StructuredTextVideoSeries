@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.0.26">
+  <POU Name="F_FIFO_WRITE" Id="{73b02f33-c1e4-40c7-9042-5e4e806ffcbe}">
+    <Declaration><![CDATA[FUNCTION F_FIFO_WRITE : BOOL
+VAR_INPUT
+	cbData : UDINT;  // Stuff coming in.
+	pData : POINTER TO BYTE;
+	
+	cbBuffer : UDINT;  // Where all the stuff lives.
+	pBuffer : POINTER TO BYTE;
+END_VAR
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+FW_MemMove(pDest := pBuffer + cbData, pSrc := pBuffer, cbLen := cbBuffer - cbData);
+
+
+FW_MemMove(pDest := pBuffer, pSrc := pData, cbLen := cbData);
+
+
+
+
+
+
+
+]]></ST>
+    </Implementation>
+    <ObjectProperties />
+  </POU>
+</TcPlcObject>

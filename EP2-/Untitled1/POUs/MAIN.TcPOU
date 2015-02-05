@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.0.26">
+  <POU Name="MAIN" Id="{d0445ce5-e1b1-4e79-885a-740f75e775d1}">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+
+	fbMyPizzaOven : FB_PIZZA_OVEN;  // My Instance of oven 1
+	
+	bLoadPizza : BOOL;  // put a pizza on the input side
+	bRemovePizza : BOOL;  // take pizza off output side.
+	
+	i : DINT;  
+	
+	arrMyBools : ARRAY [0..100] OF STRING;
+	
+	fbMyTimer : TON; 
+	
+END_VAR
+
+VAR CONSTANT
+	MAX_OVENS : DINT := 1; // This is 2.. 
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+fbMyPizzaOven(bLoadPizza:=bLoadPizza , bRemovePizza:=bRemovePizza );
+
+fbMyTimer(IN:=NOT fbMyTimer.Q, PT:=T#100MS);
+
+fbNT_GetTime(
+	NETID:= '', 
+	START:= fbMyTimer.Q , 
+	TIMESTR=>hmi_vars.stCurrentTime );
+
+	]]></ST>
+    </Implementation>
+    <ObjectProperties />
+  </POU>
+</TcPlcObject>

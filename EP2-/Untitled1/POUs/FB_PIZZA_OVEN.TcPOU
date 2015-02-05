@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.0.26">
+  <POU Name="FB_PIZZA_OVEN" Id="{a7f3b40d-09c2-4f72-a6b8-531b426023ba}">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_PIZZA_OVEN
+VAR_INPUT
+
+
+	bLoadPizza : BOOL;  // put a pizza on the input side
+	bRemovePizza : BOOL;  // take pizza off output side.
+
+END_VAR
+VAR_OUTPUT
+
+
+	iTotalPizzasCooked : UDINT;			
+	bBuzzer : BOOL;
+	bLight : BOOL;  // NEW!
+
+END_VAR
+VAR
+
+	fbLoad_RTRIG : R_TRIG;
+	fbRemove_RTRIG : R_TRIG;
+
+	iState : DINT;
+	iLastState : DINT;
+	sStateDesc : STRING;
+
+	//timers
+	fbMyTimer : TON;  // My Timer... for stuff.
+	
+	stPizzaOnDeck : ST_PIZZA; // Location of possible pizza... 
+	stPizzaInOven : ST_PIZZA;  
+	stPizzaDone   : ST_PIZZA; 
+	
+	arrStateDescHistory : ARRAY [1..100] OF STRING;
+
+END_VAR
+VAR CONSTANT
+	stNULL_PIZZA : ST_PIZZA;  
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+dtCurrentTime := SYSTEMTIME_TO_DT(stCurrentTime);
+
+
+// If there is room
+IF stPizzaOnDeck.bExist AND NOT stPizzaInOven.bExist THEN
+	stPizzaInOven := stPizzaOnDeck;
+	stPizzaOnDeck := stNULL_PIZZA;  // Remove pizza.
+END_IF
+
+
+// Handle buttons... / sim inputs
+fbLoad_RTRIG(clk := bLoadPizza);
+IF fbLoad_RTRIG.Q THEN
+	//bLoadPizza := FALSE;
+	stPizzaOnDeck.bExist := TRUE;
+	stPizzaOnDeck.eType := eType_Sausage;
+END_IF
+
+fbRemove_RTRIG(clk := bRemovePizza);
+IF fbRemove_RTRIG.Q THEN
+	F_FIFO_WRITE(cbData := SIZEOF(stPizzaDone), pData := ADR(stPizzaDone),
+					cbBuffer := SIZEOF(arrPizzaHistory), pBuffer := ADR(arrPizzaHistory)
+	);
+	stPizzaDone := stNULL_PIZZA;
+	//bRemovePizza := FALSE;
+END_IF
+
+CASE iState OF
+	
+	0:  // Wait for pizza in oven.
+		sStateDesc := 'Waiting on Pizza Now.';
+		IF stPizzaInOven.bExist THEN
+			stPizzaInOven.dtTimeEnteredOven := dtCurrentTime;
+			iState := 10;
+		END_IF
+
+	10: // We just got a pizza! Cook it.
+		sStateDesc := 'Baking That Pizza Now.';
+		fbMyTimer(IN:=TRUE,PT:=T#3S);
+		IF fbMyTimer.Q THEN
+			fbMyTimer(IN:=FALSE);
+			iState := 20;	
+		END_IF
+ 	
+	
+	20: // Can we move the pizza out of the oven?  Its going to burn.
+	
+		sStateDesc := 'PIZZA BURNING!!!!.';
+	
+		IF NOT stPizzaDone.bExist THEN
+		
+			//Simulate conveyor.
+			stPizzaInOven.dtTimeExitedOven := dtCurrentTime;
+			stPizzaDone := stPizzaInOven;
+			stPizzaInOven := stNULL_PIZZA;
+			bBuzzer := FALSE;
+	
+			iState := 30;
+	
+		ELSE
+			
+			bBuzzer := TRUE;
+			
+		END_IF
+	
+	30:  // Pizza just removed. on output tray.
+	
+		stPizzaDone.tTimeInOven := stPizzaDone.dtTimeExitedOven - stPizzaDone.dtTimeEnteredOven; 
+		iTotalPizzasCooked := iTotalPizzasCooked + 1;
+		iState := 0;   // Go wait for new pizza in oven!!
+
+	
+ELSE
+	
+	sStateDesc := 'Invalid state!';
+
+END_CASE
+
+
+// Start state history:
+
+IF iLastState <> iState THEN
+
+	// Do stuff here to log transitions.... 
+	F_FIFO_WRITE(cbData := SIZEOF(sStateDesc), pData := ADR(sStateDesc),
+					cbBuffer := SIZEOF(arrStateDescHistory), pBuffer := ADR(arrStateDescHistory)
+	);
+	
+	// Reset for next time.
+	iLastState := iState;
+
+END_IF
+]]></ST>
+    </Implementation>
+    <ObjectProperties />
+  </POU>
+</TcPlcObject>
